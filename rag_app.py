@@ -1,3 +1,4 @@
+import traceback
 import chromadb
 import ollama
 import streamlit as st
@@ -30,7 +31,11 @@ class AI:
         return full_response
 
 # Initialize AI instance
-ai = AI()
+try:
+    ai = AI()
+except Exception as e:
+    st.error("Failed to initialize AI instance.")
+    st.error(traceback.format_exc())
 
 # Streamlit UI
 st.title('💬 PSE GPT: Retrieval-Augmented Generation')
@@ -57,9 +62,13 @@ if txt := st.chat_input():
     st.chat_message("user", avatar="😎").write(txt)
 
     ### AI responds with chat stream
-    app["full_response"] = ai.respond(app["messages"])
-    st.chat_message("assistant", avatar="👾").write(app["full_response"])
-    app["messages"].append({"role":"system", "content":app["full_response"]})
+    try:
+        app["full_response"] = ai.respond(app["messages"])
+        st.chat_message("assistant", avatar="👾").write(app["full_response"])
+        app["messages"].append({"role":"system", "content":app["full_response"]})
+    except Exception as e:
+        st.error("Failed to get a response from AI.")
+        st.error(traceback.format_exc())
     
     ### Show sidebar history
     app['history'].append("😎: "+txt)
