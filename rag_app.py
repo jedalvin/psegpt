@@ -18,12 +18,26 @@ class AI:
             st.error(traceback.format_exc())
 
     def query(self, q, top=10):
-        # Implement your query logic here
-        pass
+        res_db = self.collection.query(query_texts=[q])["documents"][0][0:top]
+        context = ' '.join(res_db).replace("\n", " ")
+        return context
 
     def respond(self, lst_messages, model="phi3", use_knowledge=False):
-        # Implement your response generation logic here
-        pass
+        q = lst_messages[-1]["content"]
+        context = self.query(q)
+
+        if use_knowledge:
+            prompt = f"Give the most accurate answer using your knowledge and the following additional information:\n{context}"
+        else:
+            prompt = f"Give the most accurate answer using only the following information:\n{context}"
+
+        res_ai = ollama.chat(model=model, 
+                             messages=[{"role": "assistant", "content": prompt}] + lst_messages,
+                             stream=False)  # Ensure to use stream=False to get full response
+
+        # Extract and return the full response content
+        full_response = res_ai["message"]["content"]
+        return full_response
 
 # Initialize AI instance
 ai = AI()
